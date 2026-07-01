@@ -48,6 +48,39 @@ without checking with the user first:
 - **No Chrome Web Store distribution in v1** — "Load unpacked" only. Don't
   add store-publishing tooling/config.
 
+## Panel architecture
+
+- The panel is a **Chrome Side Panel** (`chrome.sidePanel`), not a popup and
+  not a custom overlay injected into the page. It opens when the toolbar icon
+  is clicked (`browser.action.onClicked` → `chrome.sidePanel.open({ tabId })`
+  in `entrypoints/background.ts`). WXT entrypoint convention:
+  `entrypoints/sidepanel/index.html` + `main.ts`.
+- The overlays/badges drawn on top of page content (alt text, heading levels,
+  landmarks, ARIA info, focus order) are a **separate concern** from the
+  panel: they're rendered by a content script running in the page's own DOM.
+  Don't conflate the two — the panel never draws directly into the page.
+- Because permissions are `activeTab`-only, the overlay content script is
+  **not** a statically declared `content_scripts` entry in the manifest (that
+  would need broader `host_permissions` and would run unprompted on every
+  page). It's registered with `registration: 'runtime'` in
+  `defineContentScript` and injected on demand — the moment the user clicks
+  the toolbar icon is the moment `activeTab` grants access for that tab.
+- Panel and content script communicate via `chrome.runtime`/`chrome.tabs`
+  messaging (toggle a feature on/off, report back counts/warnings) — not
+  direct DOM/JS references, since they run in separate contexts.
+
+## WXT/MV3 gotchas hit so far
+
+- If there's no popup entrypoint, the manifest gets no `"action"` key at all,
+  which means `chrome.action`/`browser.action` is `undefined` at runtime
+  (`browser.action.onClicked.addListener` throws). Fix: set
+  `manifest: { action: {} }` in `wxt.config.ts` explicitly.
+- For a `registration: 'runtime'` content script, a non-empty `matches`
+  array gets added to the manifest's `host_permissions` — silently
+  reintroducing broad access and defeating the `activeTab`-only model. Use
+  `matches: []` for runtime-registered scripts; injection is authorized by
+  `activeTab` at click time, not by `matches`.
+
 ## Code conventions
 
 - The panel itself must stay fully accessible: keyboard-navigable, correct

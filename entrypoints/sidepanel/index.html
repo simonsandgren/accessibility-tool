@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Accessibility Audit Panel</title>
+  </head>
+  <body>
+    <main>
+      <h1>Accessibility Audit Panel</h1>
+      <fieldset>
+        <legend>Exposure</legend>
+        <label>
+          <input type="checkbox" id="toggle-headings" />
+          Heading levels
+        </label>
+      </fieldset>
+      <fieldset>
+        <legend>Manipulation</legend>
+        <label>
+          <input type="checkbox" id="toggle-css" />
+          Disable page CSS
+        </label>
+      </fieldset>
+      <button type="button" id="refresh">Refresh</button>
+      <p id="status" role="status"></p>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
