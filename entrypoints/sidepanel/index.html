@@ -4,10 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Accessibility Audit Panel</title>
+    <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
-    <main>
+    <header>
       <h1 data-i18n="panelTitle">Accessibility Audit Panel</h1>
+      <button type="button" id="settings-toggle" aria-expanded="false"></button>
+    </header>
+
+    <main id="main-view">
       <fieldset>
         <legend data-i18n="exposureLegend">Exposure</legend>
         <label>
@@ -24,19 +29,20 @@
       </fieldset>
       <button type="button" id="refresh" data-i18n="refreshButton">Refresh</button>
       <p id="status" role="status"></p>
-
-      <details>
-        <summary data-i18n="settingsLabel">Settings</summary>
-        <label>
-          <span data-i18n="languageLabel">Language</span>
-          <select id="language-select">
-            <option value="auto" data-i18n="languageAuto">Auto</option>
-            <option value="en">English</option>
-            <option value="sv">Svenska</option>
-          </select>
-        </label>
-      </details>
     </main>
+
+    <section id="settings-view" hidden aria-labelledby="settings-heading">
+      <h2 id="settings-heading" data-i18n="settingsLabel">Settings</h2>
+      <label>
+        <span data-i18n="languageLabel">Language</span>
+        <select id="language-select">
+          <option value="auto" data-i18n="languageAuto">Auto</option>
+          <option value="en">English</option>
+          <option value="sv">Svenska</option>
+        </select>
+      </label>
+    </section>
+
     <script type="module" src="./main.ts"></script>
   </body>
 </html>

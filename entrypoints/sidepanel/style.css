@@ -1,0 +1,46 @@
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  font-family: system-ui, sans-serif;
+  margin: 0;
+  padding: 12px;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+header h1 {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+#settings-toggle {
+  display: inline-flex;
+  background: none;
+  border: none;
+  padding: 4px;
+  margin: 0;
+  cursor: pointer;
+  color: inherit;
+  flex-shrink: 0;
+}
+
+#settings-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
+#settings-toggle:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+fieldset {
+  margin-block: 8px;
+}
