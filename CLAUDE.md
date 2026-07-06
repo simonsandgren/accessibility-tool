@@ -69,6 +69,53 @@ without checking with the user first:
   messaging (toggle a feature on/off, report back counts/warnings) — not
   direct DOM/JS references, since they run in separate contexts.
 
+## Shared code structure (`utils/`)
+
+Content-script-side logic is split into small modules instead of one growing
+`content.ts`. When adding a new exposure/manipulation feature, reuse these
+rather than re-implementing them per feature:
+
+- `utils/messages.ts` — the `ContentMessage`/`ContentResponse` union types.
+  Both `entrypoints/content.ts` and `entrypoints/sidepanel/main.ts` import
+  from here. Never duplicate the message type in both places again — that's
+  exactly the drift that caused a bug before this was extracted.
+- `utils/dom.ts` — `queryAllDeep(root, selector)` / `collectShadowRoots(root)`.
+  The one shadow-DOM-aware traversal helper; every feature needing "find
+  elements, including inside open shadow roots" uses this instead of writing
+  its own recursive query.
+- `utils/overlay-watcher.ts` — shared `MutationObserver` + scroll/resize
+  dispatch. Features call `registerRescan(cb)`/`registerReposition(cb)`
+  instead of creating their own observers or event listeners. This exists
+  because a per-feature observer doesn't scale — see the performance
+  requirement in REQUIREMENTS.md.
+- `utils/overlay-host.ts` — the one shared shadow-DOM container all
+  overlay-drawing features render into (`getOverlayLayer(id)`), instead of
+  each feature creating its own host element. Keeps z-index/layering sane
+  when multiple exposure features are visible at once.
+- `utils/features/*.ts` — one file per feature's content-script logic
+  (`enableX()` / `disableX()` / `refreshX()`), wired together by the message
+  `switch` in `entrypoints/content.ts`. Add new features as a new file here,
+  not inline in `content.ts`.
+
+## Internationalization & settings
+
+- `utils/i18n.ts` exports `t(key, vars?)` and `tCount(baseKey, count, vars?)`
+  (plural-aware via `Intl.PluralRules`). All panel UI text goes through these
+  — either via a `data-i18n="key"` attribute (applied generically by
+  `applyTranslations()` in `sidepanel/main.ts`) or a direct `t()` call for
+  dynamic status messages. Don't hardcode UI strings.
+- Adding a string means adding the key to **both** the `en` and `sv`
+  dictionaries in `utils/i18n.ts` — there's no automatic fallback beyond
+  "fall back to English if the key is missing," which just hides the gap.
+- Default language follows the browser's language (`navigator.language`), but
+  the user can override it via the Settings section in the panel, persisted
+  through `utils/settings.ts` (`chrome.storage.local`). Don't reach for
+  `chrome.i18n`/`_locales` — it can't be overridden independently of the
+  browser's own language, which is a hard requirement here.
+- `utils/settings.ts`'s `Settings` type is one object under one storage key
+  on purpose, so adding more settings (e.g. a future theme: system/light/dark
+  toggle) is just a new field, not a migration.
+
 ## WXT/MV3 gotchas hit so far
 
 - If there's no popup entrypoint, the manifest gets no `"action"` key at all,
