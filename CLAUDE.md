@@ -113,8 +113,17 @@ rather than re-implementing them per feature:
   `chrome.i18n`/`_locales` — it can't be overridden independently of the
   browser's own language, which is a hard requirement here.
 - `utils/settings.ts`'s `Settings` type is one object under one storage key
-  on purpose, so adding more settings (e.g. a future theme: system/light/dark
-  toggle) is just a new field, not a migration.
+  on purpose, so adding more settings is just a new field, not a migration.
+  `theme: 'system' | 'light' | 'dark'` already works this way — applied via
+  `data-theme` on `<html>` (removed entirely for `'system'`, so the
+  `prefers-color-scheme` media query in `style.css` takes over). Colors are
+  CSS custom properties (`--bg`/`--fg`/`--border`) set in three places: the
+  base `:root`, the `@media (prefers-color-scheme: dark)` block, and the
+  `[data-theme="..."]` overrides — keep those three in sync when touching
+  panel colors.
+- Settings-view icons (gear/x toggle, desktop/sun/moon for theme) are
+  Phosphor Icons, regular weight, embedded as inline SVG markup (never
+  fetched at runtime — that would violate the no-network-calls constraint).
 
 ## WXT/MV3 gotchas hit so far
 

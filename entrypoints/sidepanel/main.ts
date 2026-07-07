@@ -1,6 +1,6 @@
 import type { ContentMessage, ContentResponse } from '@/utils/messages';
 import { t, tCount, setLanguageOverride } from '@/utils/i18n';
-import { getSettings, updateSettings } from '@/utils/settings';
+import { getSettings, updateSettings, type Theme } from '@/utils/settings';
 
 // Phosphor Icons "gear" and "x", regular weight - embedded inline so the
 // panel never needs a runtime fetch (no external network calls allowed).
@@ -12,6 +12,7 @@ const cssToggle = document.querySelector<HTMLInputElement>('#toggle-css')!;
 const refreshButton = document.querySelector<HTMLButtonElement>('#refresh')!;
 const statusEl = document.querySelector<HTMLParagraphElement>('#status')!;
 const languageSelect = document.querySelector<HTMLSelectElement>('#language-select')!;
+const themeInputs = document.querySelectorAll<HTMLInputElement>('input[name="theme"]');
 const settingsToggleButton = document.querySelector<HTMLButtonElement>('#settings-toggle')!;
 const mainView = document.querySelector<HTMLElement>('#main-view')!;
 const settingsView = document.querySelector<HTMLElement>('#settings-view')!;
@@ -40,11 +41,24 @@ function applyTranslations() {
   renderSettingsToggleButton();
 }
 
+function applyTheme(theme: Theme) {
+  if (theme === 'system') {
+    document.documentElement.removeAttribute('data-theme');
+  } else {
+    document.documentElement.setAttribute('data-theme', theme);
+  }
+}
+
 async function initSettings() {
   const settings = await getSettings();
   languageSelect.value = settings.language;
   setLanguageOverride(settings.language);
   applyTranslations();
+
+  applyTheme(settings.theme);
+  for (const input of themeInputs) {
+    input.checked = input.value === settings.theme;
+  }
 }
 
 languageSelect.addEventListener('change', async () => {
@@ -53,6 +67,14 @@ languageSelect.addEventListener('change', async () => {
   setLanguageOverride(language);
   applyTranslations();
 });
+
+for (const input of themeInputs) {
+  input.addEventListener('change', async () => {
+    const theme = input.value as Theme;
+    await updateSettings({ theme });
+    applyTheme(theme);
+  });
+}
 
 async function getActiveTabId(): Promise<number | undefined> {
   const [tab] = await browser.tabs.query({ active: true, currentWindow: true });

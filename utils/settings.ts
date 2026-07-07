@@ -1,13 +1,16 @@
 import type { Language } from './i18n';
 
+export type Theme = 'system' | 'light' | 'dark';
+
 // A single object under one storage key, so adding more settings later
-// (theme, etc.) doesn't require a migration - missing fields just fall back
-// to DEFAULT_SETTINGS.
+// doesn't require a migration - missing fields just fall back to
+// DEFAULT_SETTINGS.
 export type Settings = {
   language: Language | 'auto';
+  theme: Theme;
 };
 
-const DEFAULT_SETTINGS: Settings = { language: 'auto' };
+const DEFAULT_SETTINGS: Settings = { language: 'auto', theme: 'system' };
 const STORAGE_KEY = 'settings';
 
 export async function getSettings(): Promise<Settings> {
